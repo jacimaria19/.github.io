@@ -1,0 +1,27 @@
+.header {
+    background-color: #eaf4ff;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  /* The navbar container */
+.topnav {
+    overflow: hidden;
+    background-color: #78b0e6;
+  }
+  
+  /* Navbar links */
+  .topnav a {
+    float: left;
+    display: block;
+    color: hsl(245, 100%, 91%);
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+  
+  /* Links - change color on hover */
+  .topnav a:hover {
+    background-color: #ddf0f3;
+    color: black;
+  }
