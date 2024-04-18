@@ -1,0 +1,58 @@
+import requests
+import json
+from requests.auth import HTTPBasicAuth
+from datetime import datetime, timedelta, timezone
+
+email = input("Email: ")
+token = input("Api key: ")
+region = input("Region (us or eu): ")
+
+def fetch_usage_report(email, token, region):
+    base_url = f"https://api-{region}.mouseflow.com/account/usage-report"
+    auth = HTTPBasicAuth(email, token)
+    response = requests.get(base_url, auth=auth)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Failed to fetch data: {response.status_code} - {response.text}")
+        return None
+
+def calculate_total_count(sessions):
+    # Use timezone-aware datetime object for the current UTC time
+    twelve_months_ago = datetime.now(timezone.utc) - timedelta(days=365)
+    
+    relevant_sessions = []
+    for session in sessions:
+        # Parse the session date and make it timezone-aware
+        session_date = datetime.fromisoformat(session['date'])
+        if 'Z' in session['date']:
+            session_date = session_date.replace(tzinfo=timezone.utc)
+        elif '+' in session['date'] or '-' in session['date']:
+            # If the date string contains a timezone offset, `fromisoformat` should handle it
+            pass
+        else:
+            # If the date string has no timezone, you can assume it's in UTC or add appropriate tzinfo
+            session_date = session_date.replace(tzinfo=timezone.utc)
+        
+        # Now you can safely compare timezone-aware datetime objects
+        if session_date >= twelve_months_ago:
+            relevant_sessions.append(session)
+            
+    total = sum(session['count'] for session in relevant_sessions)
+    return total
+
+def calculate_totals(websites):
+    totals = []
+    for website in websites:
+        website_id = website['websiteId']
+        total_count = calculate_total_count(website['sessions'])
+        totals.append({'websiteId': website_id, 'totalSessions': total_count})
+    return totals
+
+data = fetch_usage_report(email, token, region)
+
+if data and 'websites' in data:
+    totals = calculate_totals(data['websites'])
+    print(totals)
+else:
+    print("Data is not available or 'websites' key not found in the data.")
